@@ -105,6 +105,23 @@ def project_sales(row):
 
     return row
 
+def compute_carbon_momentum(df):
+    """
+    Compute Carbon Momentum for each year starting from 2023.
+    Carbon Momentum = Carbon Emissions for the year / Beta1_emissions
+    We assume beta1_hat(t) dosen't change over time.
+    """
+    emission_columns = [
+        col for col in df.columns if col.startswith("CARBON_EMISSIONS_SCOPE_12_FY")
+    ]
+
+    for year in range(2023, 2051):
+        emission_col = f"CARBON_EMISSIONS_SCOPE_12_FY{year % 100:02d}"
+        if emission_col in df.columns:
+            df[f"CARBON_MOMENTUM_SCOPE_12_FY{year % 100:02d}"] = (
+                df[emission_col] / df["Beta1_emissions"]
+            )
+    return df
 
 def plot_emissions(row, datamsci):
     # Identifiez les colonnes d'émissions
@@ -206,7 +223,11 @@ if __name__ == "__main__":
     df = compute_intensity(df)
     df = pd.merge(df, weights, on="ISSUER_ISIN", how="left")
     df = df[
-        ["ISSUER_ISIN"]
+        ["ISSUER_ISIN","GICS_SUB_IND", "GICS_SECTOR","EST_EU_TAXONOMY_MAX_REV",
+         "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV"]
+         # We capture the greenness with "EST_EU_TAXONOMY_MAX_REV"
+         # We can put it in the context of the industry with "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV"
+         # a / ((b+c)/2)
         + ["Weight"]
         + [col for col in df.columns if col.startswith("CI_Scope12_FY")]
     ]
