@@ -1,0 +1,21 @@
+\section{Definitions and metrics}
+We describe here some of the metrics used to assess the net zero investment policy. We must consider two dimensions: the decarbonization dimension, and the transition dimension. Indeed, building a net zero investment portfolio has to satisfy two goals: decarbonizing the portfolio, and financing the transition. We thus consider two types of metrics. Net zero carbon metrics are used to assess the decarbonization dimension, and net zero transition metrics for the transition dimension. 
+Moreover, we have to take into account the dynamic properties of net zero investing. Indeed, a net zero emissions scenario is described by a trajectory. 
+
+
+\begin{definition}[Carbon emission]
+    \begin{equation}
+        \mathcal{CE}(t) = (1 - \mathcal{R}(t_0, t))\mathcal{CE}(t_0)
+    \end{equation}
+    Where $\mathcal{R}(t_0, t)$ is the reduction rate of the carbon footprint between the years $t_0$ and $t$. We also assume $\mathcal{CE}(2020)=36 GtCO_2e$.
+\end{definition}
+
+
+\begin{definition}[Carbon intensity]
+    The carbon intensity is a normalization of the carbon emissions.
+
+    \begin{equation}
+        \mathcal{CI} = \frac{\mathcal{CE}}{Y} 
+    \end{equation}
+    Where $Y$ is a normalization constant.
+\end{definition}
