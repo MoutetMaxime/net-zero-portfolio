@@ -21,7 +21,7 @@ def preprocess_serie(prices, companies_to_keep=None):
     if companies_to_keep is not None:
         prices = prices.loc[:, prices.columns.isin(companies_to_keep)]
 
-    prices = prices.dropna(axis=1, how="any")
+    #prices = prices.dropna(axis=1, how="any")
 
     # Delete problematic companies
     # prices = prices.drop(["IT0003492391"], axis=1) Already removed in companies to keep
@@ -30,7 +30,7 @@ def preprocess_serie(prices, companies_to_keep=None):
 
 
 def get_returns(prices):
-    returns = prices.pct_change(fill_method=None).dropna()
+    returns = prices.pct_change()
     return returns
 
 def cov_with_nan(s1,s2):
@@ -48,6 +48,7 @@ def compute_covariance_matrix(returns, market_returns):
     #cov_with_market = [returns[col].cov(market_returns["MXWO Index"]) for col in returns.columns]
 
     cov_with_market = [cov_with_nan(returns[col],market_returns["MXWO Index"]) for col in returns.columns]
+    print("nan",pd.Series(cov_with_market).isna().sum())
 
     # Variance du MSCI World
     msci_world_variance = market_returns.var()[0]
@@ -63,14 +64,13 @@ def compute_covariance_matrix(returns, market_returns):
 
     # Construction de la matrice de covariance à un facteur
     # Matrice de covariance entre les actions basée sur le facteur (B * Omega * B.T)
-    factor_covariance = np.outer(betas, betas) * omega
-
+    factor_covariance = (betas * omega) @ betas.T#np.outer(betas, betas) * omega
+    print("sym",np.allclose(factor_covariance, factor_covariance.T))
     # Matrice diagonale de variance spécifique (D)
     specific_covariance = np.diag(specific_variance)
 
     # Matrice totale de covariance (Sigma)
     cov_matrix_sigma = factor_covariance + specific_covariance
-
     return cov_matrix_sigma
 
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
 
     cov_matrix_sigma = compute_covariance_matrix(returns, market_returns)
     np.save("data/cov_matrix_sigma.npy", cov_matrix_sigma)
-    print(cov_matrix_sigma)
+
 
     # import seaborn as sns
     # import matplotlib.pyplot as plt
