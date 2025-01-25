@@ -23,7 +23,7 @@ def preprocess_serie(prices, companies_to_keep=None):
 
     prices = prices.dropna(axis=1, how="any")
 
-    # Delete problematic company
+    # Delete problematic companies
     # prices = prices.drop(["IT0003492391"], axis=1) Already removed in companies to keep
 
     return prices
@@ -33,15 +33,21 @@ def get_returns(prices):
     returns = prices.pct_change(fill_method=None).dropna()
     return returns
 
+def cov_with_nan(s1,s2):
+    """
+    Compute the covariance between two series with NaN values
+    """
+    mask = ~np.isnan(s1) & ~np.isnan(s2)
+    return np.cov(s1[mask],s2[mask])[0,1]
 
 def compute_covariance_matrix(returns, market_returns):
     """
     Compute the covariance matrix of the returns
     """
 
-    cov_with_market = [
-        returns[col].cov(market_returns["MXWO Index"]) for col in returns.columns
-    ]
+    #cov_with_market = [returns[col].cov(market_returns["MXWO Index"]) for col in returns.columns]
+
+    cov_with_market = [cov_with_nan(returns[col],market_returns["MXWO Index"]) for col in returns.columns]
 
     # Variance du MSCI World
     msci_world_variance = market_returns.var()[0]
