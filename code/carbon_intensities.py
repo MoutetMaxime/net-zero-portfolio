@@ -14,26 +14,26 @@ def load_msci():
     datamsci = datamsci.dropna(subset=["CARBON_EMISSIONS_SCOPE_12_FY09"])
     datamsci = datamsci.dropna(subset=["CARBON_EMISSIONS_SCOPE_12_FY14"])
     datamsci = datamsci.dropna(subset=["CARBON_EMISSIONS_SCOPE_12_FY22"])
-    datamsci = datamsci.dropna(subset=["SALES_USD_FY09"])
+    #datamsci = datamsci.dropna(subset=["SALES_USD_FY09"])
     datamsci = datamsci.dropna(subset=["SALES_USD_FY23"])
 
     return datamsci
 
 
-def compute_beta_sales(row, datamsci):
-    """
-    Compute regression coefficient beta1 for sales for a given row (company) in the dataset.
-    """
-    sales_columns = [col for col in datamsci.columns if col.startswith("SALES_USD_FY")]
-    years = np.arange(2009, 2024, 1).reshape(-1, 1)  # Années
-    sales = row[sales_columns].values.reshape(-1, 1)  # Chiffres d'affaires
+# def compute_beta_sales(row, datamsci):
+#     """
+#     Compute regression coefficient beta1 for sales for a given row (company) in the dataset.
+#     """
+#     sales_columns = [col for col in datamsci.columns if col.startswith("SALES_USD_FY")]
+#     years = np.arange(2009, 2024, 1).reshape(-1, 1)  # Années
+#     sales = row[sales_columns].values.reshape(-1, 1)  # Chiffres d'affaires
 
-    if pd.isna(row["SALES_USD_FY23"]):
-        years = years[:-1]
-        sales = sales[:-1]
+#     if pd.isna(row["SALES_USD_FY23"]):
+#         years = years[:-1]
+#         sales = sales[:-1]
 
-    model = LinearRegression().fit(years, sales)
-    return model.coef_[0][0]
+#     model = LinearRegression().fit(years, sales)
+#     return model.coef_[0][0]
 
 
 def compute_beta_emission(row, datamsci):
@@ -85,26 +85,27 @@ def project_emissions(row, datamsci):
 
     # Projeter les émissions pour les années 2024 à 2050
     for year in range(2024, 2051):
-        row[f"CARBON_EMISSIONS_SCOPE_12_FY{year % 100:02d}"] = row[
+        # On garde le max entre les valeurs et 0
+        row[f"CARBON_EMISSIONS_SCOPE_12_FY{year % 100:02d}"] = np.maximum(row[
             "CARBON_EMISSIONS_SCOPE_12_FY23"
-        ] + beta1 * (year - 2023)
-
+        ] + beta1 * (year - 2023), 0)
+        
     return row
 
 
-def project_sales(row):
-    """
-    Project sales for the years 2023 to 2050.
-    """
-    beta1_sales = row["Beta1_sales"]
+# def project_sales(row):
+#     """
+#     Project sales for the years 2023 to 2050.
+#     """
+#     beta1_sales = row["Beta1_sales"]
 
-    # Projeter les chiffres d'affaires pour les années 2024 à 2050
-    for year in range(2024, 2051):
-        row[f"SALES_USD_FY{year % 100:02d}"] = row["SALES_USD_FY23"] + beta1_sales * (
-            year - 2023
-        )
+#     # Projeter les chiffres d'affaires pour les années 2024 à 2050
+#     for year in range(2024, 2051):
+#         row[f"SALES_USD_FY{year % 100:02d}"] = row["SALES_USD_FY23"] + beta1_sales * (
+#             year - 2023
+#         )
 
-    return row
+#     return row
 
 def compute_carbon_momentum(df):
     """
@@ -184,17 +185,17 @@ def plot_emissions(row, datamsci):
     plt.show()
 
 
-def compute_emissions_sales(df):
-    df["Beta1_emissions"] = df.apply(lambda x: compute_beta_emission(x, df), axis=1)
-    df["Beta1_sales"] = df.apply(lambda x: compute_beta_sales(x, df), axis=1)
+# def compute_emissions_sales(df):
+#     df["Beta1_emissions"] = df.apply(lambda x: compute_beta_emission(x, df), axis=1)
+#     df["Beta1_sales"] = df.apply(lambda x: compute_beta_sales(x, df), axis=1)
 
-    # Project Carbon emission
-    df = df.apply(lambda x: project_emissions(x, df), axis=1)
+#     # Project Carbon emission
+#     df = df.apply(lambda x: project_emissions(x, df), axis=1)
 
-    # Project Sales
-    df = df.apply(project_sales, axis=1)
+#     # Project Sales
+#     df = df.apply(project_sales, axis=1)
 
-    return df
+#     return df
 
 
 def compute_intensity(df):
@@ -205,11 +206,11 @@ def compute_intensity(df):
     ce12_columns = [
         col for col in df.columns if col.startswith("CARBON_EMISSIONS_SCOPE_12")
     ]
-    sales_columns = [col for col in df.columns if col.startswith("SALES")]
+    #sales_columns = [col for col in df.columns if col.startswith("SALES")]
 
     for i, year in enumerate(range(2009, 2051)):
         df[f"CI_Scope12_FY{year % 100:02d}"] = (
-            df[ce12_columns[i]] / df[sales_columns[0]]
+            df[ce12_columns[i]] / df["SALES_USD_FY23"]
         )
         # df[f"CI_Scope3_FY{year % 100:02d}"] = df[ce3_columns[i]] / df[sales_columns[i]]
 
@@ -220,13 +221,13 @@ if __name__ == "__main__":
     df = load_msci()
     weights = df[["ISSUER_ISIN", "MarketCap_USD"]]
     weights["Weight"] = weights["MarketCap_USD"] / weights["MarketCap_USD"].sum()
-    df = compute_emissions_sales(df)
+    #df = compute_emissions_sales(df)
     df = compute_intensity(df)
     df = pd.merge(df, weights, on="ISSUER_ISIN", how="left")
     df = df[
-        ["ISSUER_ISIN","GICS_SUB_IND", "GICS_SECTOR","EST_EU_TAXONOMY_MAX_REV",
+        ["ISSUER_ISIN","GICS_SUB_IND", "GICS_SECTOR","EST_EU_TAXONOMY_MAX_REV", "CT_TOTAL_MAX_REV"
          "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV","GICS_SECTOR"]
-         # We capture the greenness with "EST_EU_TAXONOMY_MAX_REV"
+         # We capture the greenness with "EST_EU_TAXONOMY_MAX_REV" or "CT_TOTAL_MAX_REV"
          # We can put it in the context of the industry with "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV"
          # a / ((b+c)/2)
         + ["Weight"]
