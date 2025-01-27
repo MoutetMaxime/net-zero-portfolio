@@ -185,17 +185,16 @@ def plot_emissions(row, datamsci):
     plt.show()
 
 
-# def compute_emissions_sales(df):
-#     df["Beta1_emissions"] = df.apply(lambda x: compute_beta_emission(x, df), axis=1)
+def compute_emissions_sales(df):
+    df["Beta1_emissions"] = df.apply(lambda x: compute_beta_emission(x, df), axis=1)
 #     df["Beta1_sales"] = df.apply(lambda x: compute_beta_sales(x, df), axis=1)
 
-#     # Project Carbon emission
-#     df = df.apply(lambda x: project_emissions(x, df), axis=1)
+    # Project Carbon emission
+    df = df.apply(lambda x: project_emissions(x, df), axis=1)
 
 #     # Project Sales
 #     df = df.apply(project_sales, axis=1)
-
-#     return df
+    return df
 
 
 def compute_intensity(df):
@@ -221,11 +220,11 @@ if __name__ == "__main__":
     df = load_msci()
     weights = df[["ISSUER_ISIN", "MarketCap_USD"]]
     weights["Weight"] = weights["MarketCap_USD"] / weights["MarketCap_USD"].sum()
-    #df = compute_emissions_sales(df)
+    df = compute_emissions_sales(df)
     df = compute_intensity(df)
     df = pd.merge(df, weights, on="ISSUER_ISIN", how="left")
     df = df[
-        ["ISSUER_ISIN","GICS_SUB_IND", "GICS_SECTOR","EST_EU_TAXONOMY_MAX_REV", "CT_TOTAL_MAX_REV"
+        ["ISSUER_ISIN","GICS_SUB_IND", "GICS_SECTOR","EST_EU_TAXONOMY_MAX_REV", "CT_TOTAL_MAX_REV",
          "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV","GICS_SECTOR"]
          # We capture the greenness with "EST_EU_TAXONOMY_MAX_REV" or "CT_TOTAL_MAX_REV"
          # We can put it in the context of the industry with "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV"
@@ -236,5 +235,4 @@ if __name__ == "__main__":
     ]
 
     print(df["Weight"].sum())
-
     df.to_csv("data/CarbonIntensity.csv", index=False)
