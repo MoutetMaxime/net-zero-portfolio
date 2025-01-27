@@ -1,12 +1,75 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 from sklearn.linear_model import LinearRegression
 
 
 def load_msci():
     datamsci = pd.read_csv("data/DataMSCI.csv", sep=";")
-    datamsci = datamsci[~datamsci["ISSUER_ISIN"].isin(["IT0003492391", "AU000000REH4", "GB00BMX86B70","AU000000SVW5",'JP3538800008', 'JP3502200003', 'US30231G1022', 'NO0005052605', 'US9426222009', 'JP3902400005', 'JP3435000009', 'US4592001014', 'JP3866800000', 'GB0007980591', 'CH0012138605', 'DE0007664005', 'DE0005140008', 'JP3258000003', 'US46625H1005', 'CA4530384086', 'JP3201200007', 'GB0033195214', 'SE0000108227', 'CH0038863350', 'NL0000009538', 'US4595061015', 'US5801351017', 'JP3854600008', 'BE0003604155', 'DE0008404005', 'US02209S1033', 'US0258161092', 'LU1598757687', 'JP3942400007', 'ES0113900J37', 'US1941621039', 'DE0007100000', 'US5324571083', 'US3453708600', 'GB0005405286', 'JP3788600009', 'US6516391066', 'US7170811035', 'US7427181091', 'JP3973400009', 'GB0007188757', 'CH0012032048', 'DE0007236101', 'JP3621000003', 'SE0000108656', 'ES0178430E18', 'US90459E1064', 'US25240J1051', 'US7181721090', 'AU000000CAR3', 'US00287Y1091', 'CA0679011084', 'BE0974464977'])]
+    datamsci = datamsci[
+        ~datamsci["ISSUER_ISIN"].isin(
+            [
+                "IT0003492391",
+                "AU000000REH4",
+                "GB00BMX86B70",
+                "AU000000SVW5",
+                "JP3538800008",
+                "JP3502200003",
+                "US30231G1022",
+                "NO0005052605",
+                "US9426222009",
+                "JP3902400005",
+                "JP3435000009",
+                "US4592001014",
+                "JP3866800000",
+                "GB0007980591",
+                "CH0012138605",
+                "DE0007664005",
+                "DE0005140008",
+                "JP3258000003",
+                "US46625H1005",
+                "CA4530384086",
+                "JP3201200007",
+                "GB0033195214",
+                "SE0000108227",
+                "CH0038863350",
+                "NL0000009538",
+                "US4595061015",
+                "US5801351017",
+                "JP3854600008",
+                "BE0003604155",
+                "DE0008404005",
+                "US02209S1033",
+                "US0258161092",
+                "LU1598757687",
+                "JP3942400007",
+                "ES0113900J37",
+                "US1941621039",
+                "DE0007100000",
+                "US5324571083",
+                "US3453708600",
+                "GB0005405286",
+                "JP3788600009",
+                "US6516391066",
+                "US7170811035",
+                "US7427181091",
+                "JP3973400009",
+                "GB0007188757",
+                "CH0012032048",
+                "DE0007236101",
+                "JP3621000003",
+                "SE0000108656",
+                "ES0178430E18",
+                "US90459E1064",
+                "US25240J1051",
+                "US7181721090",
+                "AU000000CAR3",
+                "US00287Y1091",
+                "CA0679011084",
+                "BE0974464977",
+            ]
+        )
+    ]
     datamsci = datamsci.drop(
         columns=["ISSUER_NAME", "ISSUERID", "ISSUER_LEI", "ISSUER_TICKER"]
     )
@@ -106,6 +169,7 @@ def project_sales(row):
 
     return row
 
+
 def compute_carbon_momentum(df):
     """
     Compute Carbon Momentum for each year starting from 2023.
@@ -123,6 +187,7 @@ def compute_carbon_momentum(df):
                 df[emission_col] / df["Beta1_emissions"]
             )
     return df
+
 
 def plot_emissions(row, datamsci):
     # Identifiez les colonnes d'émissions
@@ -224,11 +289,19 @@ if __name__ == "__main__":
     df = compute_intensity(df)
     df = pd.merge(df, weights, on="ISSUER_ISIN", how="left")
     df = df[
-        ["ISSUER_ISIN","GICS_SUB_IND", "GICS_SECTOR","EST_EU_TAXONOMY_MAX_REV",
-         "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV","GICS_SECTOR"]
-         # We capture the greenness with "EST_EU_TAXONOMY_MAX_REV"
-         # We can put it in the context of the industry with "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV"
-         # a / ((b+c)/2)
+        [
+            "ISSUER_ISIN",
+            "GICS_SUB_IND",
+            "GICS_SECTOR",
+            "EST_EU_TAXONOMY_MAX_REV",
+            "CT_TOTAL_MAX_REV",
+            "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV",
+            "EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV",
+            "GICS_SECTOR",
+        ]
+        # We capture the greenness with "EST_EU_TAXONOMY_MAX_REV"
+        # We can put it in the context of the industry with "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV"
+        # a / ((b+c)/2)
         + ["Weight"]
         + [col for col in df.columns if col.startswith("CI_Scope12_FY")]
     ]
