@@ -209,7 +209,7 @@ def compute_intensity(df):
 
     for i, year in enumerate(range(2009, 2051)):
         df[f"CI_Scope12_FY{year % 100:02d}"] = (
-            df[ce12_columns[i]] / df[sales_columns[i]]
+            df[ce12_columns[i]] / df[sales_columns[0]]
         )
         # df[f"CI_Scope3_FY{year % 100:02d}"] = df[ce3_columns[i]] / df[sales_columns[i]]
 
@@ -231,6 +231,7 @@ if __name__ == "__main__":
          # a / ((b+c)/2)
         + ["Weight"]
         + [col for col in df.columns if col.startswith("CI_Scope12_FY")]
+        + [col for col in df.columns if col.startswith("CARBON_EMISSIONS_SCOPE_12_FY")]
     ]
 
     print(df["Weight"].sum())
