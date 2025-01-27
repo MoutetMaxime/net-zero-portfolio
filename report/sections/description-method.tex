@@ -1,0 +1,17 @@
+\section{Description of the method}
+We describe here the method used in \citep{barahhou2022netzero} to define and construct a net zero portfolio. We have a dynamic approach, where we want to find the optimal portfolio $x^*(t)$ at each date $t$.
+To construct our portfolio, we want to solve the following optimization problem.
+
+\paragraph{Optimization problem}
+Let $x$ be a portfolio and $\Sigma$ the covariance matrix of stock returns. We want to minimize the tracking error variance of the portfolio $x$ with respect to a benchmarck $b$, subject to a carbon reduction constraint:
+
+\begin{equation}
+    x^*(t) = 
+    \text{argmin} \frac{1}{2}(x - b(t))^T \Sigma (t)(x - b(t)), \quad
+    \text{s.t.} 
+    \begin{cases}
+        \mathcal{CI}(t, x) \leq \big(1 - \mathcal{R}(t_0, t) \cdot \mathcal{CI}(t_0, b(t_0))\big) \\
+        x \in \Omega_1\cap \Omega_2(t)
+    \end{cases}
+\end{equation}
+Where $\mathcal{CI}(t, x)$ the carbon intensity at time $t$ of the portfolio $x$, and $\mathcal{CI}(t, b(t))$ is the carbon intensity at time $t$ of the benchmark. $\Omega_1$ and $\Omega_2(t)$ are sets of additional constraints. 

@@ -1,0 +1,66 @@
+\documentclass{article}
+
+% Packages nécessaires
+\usepackage[utf8]{inputenc} % Encodage UTF-8
+\usepackage[T1]{fontenc}   % Encodage des polices
+\usepackage{amsmath, amssymb, amsthm} % Mathématiques
+\usepackage{geometry}      % Mise en page
+\usepackage{graphicx}      % Inclusion d'images
+\usepackage{hyperref}      % Hyperliens
+\usepackage{xcolor}        % Couleurs pour les liens
+
+\usepackage[authoryear]{natbib}  % Pour le style auteur, année
+\usepackage{cite}
+
+
+\geometry{a4paper, margin=1in}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+    pdftitle={Rapport de Mathématiques},
+    pdfauthor={Votre Nom}
+}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Définition}[section]
+\theoremstyle{plain}
+\newtheorem{theorem}{Théorème}[section]
+\newtheorem{lemma}[theorem]{Lemme}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollaire}
+
+\theoremstyle{remark}
+\newtheorem{remark}{Remarque}[section]
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+
+\newcommand{\includesection}[1]{\input{sections/#1}}
+
+
+\begin{document}
+
+\title{\textbf{\Large{Projet d'Approfondissement en Finance:\\ Net Zero Investing With Impact}}}
+\author{Ahyerre Victoire, Crouzet Florent\\
+ Moutet Maxime, Selles Etienne \\
+\small ENSAE}
+\date{\today}
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+
+\includesection{introduction}
+\includesection{definitions-and-metrics}
+\includesection{description-method}
+\includesection{conclusion}
+
+
+
+
+\bibliographystyle{plain}  % Style pour les citations auteur, année
+\bibliography{bibliography}
+\end{document}
