@@ -289,31 +289,18 @@ if __name__ == "__main__":
     df = compute_intensity(df)
     df = pd.merge(df, weights, on="ISSUER_ISIN", how="left")
     df = df[
-<<<<<<< HEAD
-        ["ISSUER_ISIN","GICS_SUB_IND", "GICS_SECTOR","EST_EU_TAXONOMY_MAX_REV", "CT_TOTAL_MAX_REV",
-=======
-<<<<<<< HEAD
-        [
-            "ISSUER_ISIN",
+       [    "ISSUER_ISIN",
             "GICS_SUB_IND",
             "GICS_SECTOR",
             "EST_EU_TAXONOMY_MAX_REV",
             "CT_TOTAL_MAX_REV",
             "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV",
             "EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV",
-            "GICS_SECTOR",
+            "GICS_SECTOR"
         ]
-        # We capture the greenness with "EST_EU_TAXONOMY_MAX_REV"
-        # We can put it in the context of the industry with "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV"
-        # a / ((b+c)/2)
-=======
-        ["ISSUER_ISIN","GICS_SUB_IND", "GICS_SECTOR","EST_EU_TAXONOMY_MAX_REV", "CT_TOTAL_MAX_REV"
->>>>>>> 2acc47433067ede98e2aa419d522d369509ec347
-         "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV","GICS_SECTOR"]
          # We capture the greenness with "EST_EU_TAXONOMY_MAX_REV" or "CT_TOTAL_MAX_REV"
          # We can put it in the context of the industry with "EU_TAXONOMY_ADAPTATION_ELIGIBLE_MAX_REV","EU_TAXONOMY_MITIGATION_ELIGIBLE_MAX_REV"
          # a / ((b+c)/2)
->>>>>>> ace919561efbb1fb89e4048f1f9893641552b24b
         + ["Weight"]
         + [col for col in df.columns if col.startswith("CI_Scope12_FY")]
         + [col for col in df.columns if col.startswith("CARBON_EMISSIONS_SCOPE_12_FY")]
