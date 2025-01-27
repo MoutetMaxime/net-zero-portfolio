@@ -2,14 +2,24 @@
 We describe here some of the metrics used to assess the net zero investment policy. We must consider two dimensions: the decarbonization dimension, and the transition dimension. Indeed, building a net zero investment portfolio has to satisfy two goals: decarbonizing the portfolio, and financing the transition. We thus consider two types of metrics. Net zero carbon metrics are used to assess the decarbonization dimension, and net zero transition metrics for the transition dimension. 
 Moreover, we have to take into account the dynamic properties of net zero investing. Indeed, a net zero emissions scenario is described by a trajectory. 
 
-
 \begin{definition}[Carbon emission]
     \begin{equation}
         \mathcal{CE}(t) = (1 - \mathcal{R}(t_0, t))\mathcal{CE}(t_0)
     \end{equation}
     Where $\mathcal{R}(t_0, t)$ is the reduction rate of the carbon footprint between the years $t_0$ and $t$. We also assume $\mathcal{CE}(2020)=36 GtCO_2e$.
 \end{definition}
+GRAPHE DECARBONIZATION PATHWAY
 
+\begin{definition}[Scope emissions]
+    The Greenhouse Gas (GHG) Protocol categorizes emissions into three scopes:  
+        \begin{itemize}
+            \item \textbf{Scope 1}: Direct emissions from sources owned or controlled by the company.
+            \item \textbf{Scope 2}: Indirect emissions from the consumption of purchased electricity, heat, or steam.
+            \item \textbf{Scope 3}: Other indirect emissions, including those from upstream (suppliers) and downstream (customers) activities along the value chain.
+        \end{itemize}
+    \end{definition}
+    
+In our work, we focused only on scopes 1 and 2, as they are more accurately reported and less prone to double counting
 
 \begin{definition}[Carbon intensity]
     The carbon intensity is a normalization of the carbon emissions.
@@ -18,4 +28,24 @@ Moreover, we have to take into account the dynamic properties of net zero invest
         \mathcal{CI} = \frac{\mathcal{CE}}{Y} 
     \end{equation}
     Where $Y$ is a normalization constant.
+\end{definition}
+
+\begin{definition}[Carbon momentum]
+    Carbon momentum evaluates the dynamic reduction of emissions, focusing on the trajectory of carbon emissions over time. It is defined as:
+    \begin{equation}
+        \mathcal{CM}_{\text{long}}(t) = \frac{\beta_1(t)}{\mathcal{CE}(t)}
+    \end{equation}
+    Where $\beta_1(t)$ is the slope of the trend estimated from historical emissions data. A negative $\beta_1(t)$ indicates a decarbonization trajectory. Short-term momentum can also be defined to assess recent efforts:
+    \begin{equation}
+        \mathcal{CM}_{\text{short}}(t) = \frac{\beta_1(t) - \beta_1(t-1)}{\mathcal{CE}(t)}
+    \end{equation}
+    Carbon momentum provides insight into an issuer's dynamic performance in reducing emissions.
+\end{definition}
+
+\begin{definition}[Greenness]
+    Greenness measures the contribution of a portfolio or issuer to the low-carbon transition, often expressed as the share of green revenues or expenditures. It is defined as:
+    \begin{equation}
+        \mathcal{G}(t) = \frac{\text{Green Revenues or Expenditures}(t)}{\text{Total Revenues or Expenditures}(t)}
+    \end{equation}
+    This metric captures the proportion of financial activity directly linked to green investments, such as renewable energy, sustainable infrastructure, or green bonds. A higher value of $\mathcal{G}(t)$ reflects a stronger alignment with the transition dimension.
 \end{definition}

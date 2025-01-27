@@ -14,4 +14,48 @@ Let $x$ be a portfolio and $\Sigma$ the covariance matrix of stock returns. We w
         x \in \Omega_1\cap \Omega_2(t)
     \end{cases}
 \end{equation}
-Where $\mathcal{CI}(t, x)$ the carbon intensity at time $t$ of the portfolio $x$, and $\mathcal{CI}(t, b(t))$ is the carbon intensity at time $t$ of the benchmark. $\Omega_1$ and $\Omega_2(t)$ are sets of additional constraints. 
+Where:  
+- $\mathcal{CI}(t, x)$ is the carbon intensity of the portfolio $x$ at time $t$.  
+- $\mathcal{CI}(t, b(t))$ is the carbon intensity of the benchmark $b$ at time $t$.  
+- $\mathcal{R}(t_0, t)$ is the reduction rate, following the Paris-Aligned Benchmark (PAB) scenario, ensuring alignment with Paris agreement by 2050.  
+- $\Omega_1$ and $\Omega_2(t)$ are sets of additional constraints.
+
+The outputs of our optimization are the portfolio weights for each company over the years asn the corresponding tracking error variance. To recover the tracking error volatility in bps, we multiply the square root of the variance by $10^4$.
+
+At present, the only constraint explicitly incorporated is the carbon emissions constraint, along with feasability constraint ($ x \in [0,1] \quad, \sum x = 1$).Our optimization model enforces reductions aligned with the PAB trajectory. Future extensions of this framework will involve:  
+\begin{itemize}
+    \item Integratingnew constraints (greenness metrics, carbon momentum).
+    \item Reformulating the optimization problem to strike a balance between minimizing tracking error and maximizing greenness, eg. by adding the constraints directly into the objective functions.
+\end{itemize}
+
+GRAPHE EVOLUTION TRACKING ERROR VOLATILITY
+We observe that the trackong error volatility increases when the reduction rates increases.
+
+
+\paragraph{Data used}
+The analysis relies on two primary data sources, using the MSCI index as our benchmark:  
+\begin{itemize}
+    \item \textbf{MSCI dataset:} Contains sector classifications, carbon emissions (scopes 1, 2 and 3), and various greenness metrics for companies in the benchmark.  
+    \item \textbf{Bloomberg data:} Provides historical stock prices for companies in the benchmark.
+\end{itemize}
+We use this data to construct the covariance matrix of stock returns, and to compute the carbon intensity of the portfolio and the benchmark.
+The emissions are projected to 2050 from the known emissions from 2009 to 2023.
+We calculate the reduction rate of the carbon intensity needed every year to align with the PAB scenario. 
+
+\paragraph{Descriptive statistics}
+We performed descriptive statistics on the MSCI dataset to better understand the dataset.
+INSERER GRAPHE
+The descriptive statistics reveal significant variations across sectors in terms of normalized issuer count, estimated revenue alignment with the EU taxonomy (used as a measure for greenness), and carbon intensity (Scopes 1 and 2).
+Utilities dominate in terms of carbon intensity, reflecting their high emissions profile, while the Materials sector stands out for its significant contribution to EU taxonomy-aligned revenue.
+In contrast, sectors like Health Care and Communication Services exhibit relatively low values across all metrics. 
+This comparison highlights the heterogeneity among sectors, which is critical for constructing a balanced and sustainable portfolio.
+
+\paragraph{Results}
+We optimize our portfolio to minimize tracking error variance while ensuring alignment with the PAB scenario. 
+We observe that the tracking error volatility increases with the years, as expected.
+We also observe that the repartition of the GICS sectors in the portfolio evolves over time.
+GRAPHES
+
+
+
+
