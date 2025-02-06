@@ -287,6 +287,7 @@ if __name__ == "__main__":
     weights["Weight"] = weights["MarketCap_USD"] / weights["MarketCap_USD"].sum()
     df = compute_emissions_sales(df)
     df = compute_intensity(df)
+    df = compute_carbon_momentum(df)
     df = pd.merge(df, weights, on="ISSUER_ISIN", how="left")
     df = df[
        [    "ISSUER_ISIN",
@@ -304,6 +305,7 @@ if __name__ == "__main__":
         + ["Weight"]
         + [col for col in df.columns if col.startswith("CI_Scope12_FY")]
         + [col for col in df.columns if col.startswith("CARBON_EMISSIONS_SCOPE_12_FY")]
+        + [col for col in df.columns if col.startswith("CARBON_MOMENTUM_SCOPE_12_FY")]
     ]
 
     print(df["Weight"].sum())
