@@ -185,6 +185,20 @@ def evolution_of_non_zeros_per_sector(CI, name_col='Weight_CE_FY',title=''):
     plt.tight_layout()
     plt.show()
 
+def greenness(Green,CI,times,name_col="Weights_CE_FY",title=''):
+    weights = [col for col in CI.columns if col.startswith(name_col)]
+    x_list = [CI[weight].values for weight in weights]
+    green_plot = [Green.T @ x for x in x_list] 
+    green_plot = np.array(green_plot).squeeze()
+    plt.figure(figsize=(10, 6))
+    plt.plot(times,green_plot,marker='o', linestyle='-', color='g')
+    plt.title('Greenness Over Time' + title)
+    plt.xlabel('Year')
+    plt.ylabel('Greenness')
+    plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
 def spider_graph(CI, name_col='Weight_CE_FY',title=''):
     categories =  CI["GICS_SECTOR"].unique()
     # Extraire les colonnes liées aux poids au fil des années
@@ -259,18 +273,18 @@ def solve_optim(R_, CI, CI0, bench, sigma, Green=None, CMstar=None, g=None, cons
                 A = np.ones((bench.shape[0],1)).T,
                 b = -np.ones(bench.shape).T @ bench + 1,
                 lb = - bench,
-                ub =np.ones(bench.shape) - bench,
+                ub =np.ones(bench.shape) - bench, #9 * bench ?
             )
         else:
             y = solve(
-        Q = sigma,
-        p = None,
-        G = CI_year[:,0].T,
-        h = (1 - R) * CI0.T @ bench - CI_year.T @ bench,
-        A = np.ones((bench.shape[0],1)).T,
-        b =-np.ones(bench.shape).T @ bench + 1,
-        lb = - bench,
-        ub =np.ones(bench.shape) - bench,
+            Q = sigma,
+            p = None,
+            G = CI_year[:,0].T,
+            h = (1 - R) * CI0.T @ bench - CI_year.T @ bench,
+            A = np.ones((bench.shape[0],1)).T,
+            b =-np.ones(bench.shape).T @ bench + 1,
+            lb = - bench,
+            ub =np.ones(bench.shape) - bench, #9 * bench ?
         )
         y = y[:,np.newaxis]
         x = y + bench
@@ -300,7 +314,7 @@ def solve_optim_lambda(R_, CI, CI0, bench, sigma, Green=None, CMstar=None, g=Non
             A = np.ones((bench.shape[0],1)).T,
             b = -np.ones(bench.shape).T @ bench + 1,
             lb = - bench,
-            ub =np.ones(bench.shape) - bench,
+            ub =np.ones(bench.shape) - bench, #9 * bench ?
         )
         y = y[:,np.newaxis]
         x = y + bench
