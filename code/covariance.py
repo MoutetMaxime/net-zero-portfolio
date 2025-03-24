@@ -1,11 +1,11 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 
 def load_bbg_prices():
-    bbg_prices = pd.read_excel("data/Bloomberg_Prices.xlsx")
+    bbg_prices = pd.read_excel("../data/Bloomberg_Prices.xlsx")
     bbg_msci_prices = pd.read_excel(
-        "data/Bloomberg_Prices.xlsx", sheet_name="MSCI_World"
+        "../data/Bloomberg_Prices.xlsx", sheet_name="MSCI_World"
     )
 
     return bbg_prices, bbg_msci_prices
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     bbg_prices, bbg_msci_prices = load_bbg_prices()
 
     # Remove companies with missing carbon intensity
-    carbon_intensity = pd.read_csv("data/CarbonIntensity.csv")
+    carbon_intensity = pd.read_csv("../data/CarbonIntensity.csv")
 
     # Remove companies with missing carbon intensity
     companies_to_keep = carbon_intensity["ISSUER_ISIN"].to_list()
@@ -91,13 +91,13 @@ if __name__ == "__main__":
     ]
     carbon_intensity["Weight"] /= carbon_intensity["Weight"].sum()
 
-    carbon_intensity.to_csv("data/filtered_CarbonIntensity.csv", index=False)
+    carbon_intensity.to_csv("../data/filtered_CarbonIntensity.csv", index=False)
 
     returns = get_returns(y).iloc[:-1]
     market_returns = get_returns(preprocess_serie(bbg_msci_prices))
 
     cov_matrix_sigma = compute_covariance_matrix(returns, market_returns)
-    np.save("data/cov_matrix_sigma.npy", cov_matrix_sigma)
+    # np.save("../data/cov_matrix_sigma.npy", cov_matrix_sigma)
 
 
     # import seaborn as sns

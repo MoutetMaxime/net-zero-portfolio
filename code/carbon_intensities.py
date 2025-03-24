@@ -5,7 +5,7 @@ from sklearn.linear_model import LinearRegression
 
 
 def load_msci():
-    datamsci = pd.read_csv("data/DataMSCI.csv", sep=";")
+    datamsci = pd.read_csv("../data/DataMSCI.csv", sep=";")
     datamsci = datamsci[
         ~datamsci["ISSUER_ISIN"].isin(
             [

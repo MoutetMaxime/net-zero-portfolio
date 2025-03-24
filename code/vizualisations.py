@@ -1,20 +1,134 @@
-import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
-import math 
-from PortfolioToolboxQP.PortfolioToolboxQP.Qp_Solver import qp_solver_cpp as solve
-from mpl_toolkits.mplot3d import Axes3D
 
-def decarbonization_pathway(t0, t, Rm, dR):
-    """
-    Compute the decarbonization budget with equation (1).
 
-    param t0: base year
-    param t: year index
-    param Rm: minimum carbon intensity reduction
-    param dR: year-to-year self decarbonization on average per annum
-    """
-    return 1 - (1 - dR) ** (t - t0) * (1 - Rm)
+def graph_3D_surface(Green, x_list_year, lambdas,years,te_plot,title=''):
+    green_plot = [[(Green.T @ x)[0][0] for x in x_list_year[i]] for i in range(len(x_list_year))]
+    green_plot = np.array(green_plot).squeeze()
+
+    # Create a meshgrid for the years and lambdas
+    lambdas_grid, years_grid = np.meshgrid(lambdas, years)
+
+
+    # Plotting the 3D plot
+    fig = plt.figure(figsize=(12, 20))
+    ax1 = fig.add_subplot(121, projection='3d')
+
+    # Plot the surface
+    ax1.plot_surface(lambdas_grid, years_grid, te_plot.T, cmap='viridis')
+
+    # Add labels and title
+    ax1.set_xlabel('Lambda')
+    ax1.set_ylabel('Year')
+    ax1.set_zlabel('Tracking Error (sqrt(te) * 1e4)')
+    ax1.set_title('3D Plot of Tracking Error vs Year and Lambda')
+
+    ax2 = fig.add_subplot(122, projection='3d')
+
+    # Plot the surface
+    ax2.plot_surface(lambdas_grid, years_grid, green_plot.T, cmap='viridis')
+
+    # Add labels and title
+    ax2.set_xlabel('Lambda')
+    ax2.set_ylabel('Year')
+    ax2.set_zlabel('Tracking Error (sqrt(te) * 1e4)')
+    ax2.set_title('3D Plot of Tracking Error vs Year and Lambda')
+    plt.suptitle(title)
+    plt.show()
+
+def graphe_3D_block(Green, x_list_year, lambdas, years, te_plot,title=''):
+    green_plot = [[(Green.T @ x)[0][0] for x in x_list_year[i]] for i in range(len(x_list_year))]
+    green_plot = np.array(green_plot).squeeze()
+    fig = plt.figure(figsize=(12, 8))
+    ax1 = fig.add_subplot(121, projection='3d')
+    ax2 = fig.add_subplot(122, projection='3d')
+
+    # Positions des barres en 3D
+    xpos, ypos = np.meshgrid(lambdas, years)  # Création des grilles pour lambda et année
+    xpos = xpos.flatten()  # Aplatir en liste de coordonnées
+    ypos = ypos.flatten()
+    zpos = np.zeros_like(xpos)  # Base des barres (z=0)
+
+    # Largeur et profondeur des barres
+    dx = np.abs(np.diff(lambdas).mean()) * 0.8  # Ajuste la largeur des barres
+    dy = np.abs(np.diff(years).mean()) * 0.8  
+
+    # Hauteur des barres (valeurs de `te_year_array`)
+    dz1 = te_plot.T.flatten()
+    dz2 = green_plot.T.flatten()
+
+    # Coloration basée sur la hauteur des barres
+    colors1 = plt.cm.viridis((dz1 - dz1.min()) / (dz1.max() - dz1.min()))
+    colors2 = plt.cm.viridis((dz2 - dz2.min()) / (dz2.max() - dz2.min()))
+
+    # Création de l'histogramme 3D
+    ax1.bar3d(xpos, ypos, zpos, dx, dy, dz1, color=colors1, shade=True)
+    ax2.bar3d(xpos, ypos, zpos, dx, dy, dz2, color=colors2, shade=True)
+
+    # Labels et titre
+    ax1.set_xlabel("Lambda")
+    ax1.set_ylabel("Année")
+    ax1.set_zlabel("Tracking Error")
+    ax1.set_title("Histogramme 3D du Tracking Error")
+    ax2.set_xlabel("Lambda")
+    ax2.set_ylabel("Année")
+    ax2.set_zlabel("Greenness")
+    ax2.set_title("Histogramme 3D de Greenness")
+    plt.suptitle(title)
+
+    plt.show()
+
+def graphe_3D_block_surface_ref(Green, x_list_year, lambdas, years, te_plot, te_green, x_list_green,te_year,title=''):
+    lambdas_grid, years_grid = np.meshgrid(lambdas, years)
+    green_plot = [[(Green.T @ x)[0][0] for x in x_list_year[i]] for i in range(len(x_list_year))]
+    green_plot = np.array(green_plot).squeeze()
+
+    # Positions des barres en 3D
+    xpos, ypos = np.meshgrid(lambdas, years)  # Création des grilles pour lambda et année
+    xpos = xpos.flatten()  # Aplatir en liste de coordonnées
+    ypos = ypos.flatten()
+    zpos = np.zeros_like(xpos)  # Base des barres (z=0)
+
+    # Largeur et profondeur des barres
+    dx = np.abs(np.diff(lambdas).mean()) * 0.8  # Ajuste la largeur des barres
+    dy = np.abs(np.diff(years).mean()) * 0.8  
+
+    # Hauteur des barres (valeurs de `te_year_array`)
+    dz1 = te_plot.T.flatten()
+    dz2 = green_plot.T.flatten()
+
+    # Coloration basée sur la hauteur des barres
+    colors1 = plt.cm.viridis((dz1 - dz1.min()) / (dz1.max() - dz1.min()))
+    colors2 = plt.cm.viridis((dz2 - dz2.min()) / (dz2.max() - dz2.min()))
+    te_plot_green = [[np.sqrt(te_green[j][0][0])*1e4 for j in range(len(te_year[0]))] for i in range(len(te_year))]
+    te_plot_green = np.array(te_plot_green).squeeze()
+
+    x_list_green = np.array(x_list_green).squeeze()
+    green_plot_ = [[(Green.T)@(x_list_green[i]) for i in range(len(te_year[0]))] for j in range(len(x_list_year))]
+    green_plot_ = np.array(green_plot_).squeeze()
+
+    fig = plt.figure(figsize=(12, 8))
+    ax1 = fig.add_subplot(121, projection='3d')
+    ax2 = fig.add_subplot(122, projection='3d')
+
+    # Création de l'histogramme 3D
+    ax1.bar3d(xpos, ypos, zpos, dx, dy, dz1, color=colors1, shade=True, alpha = 0.2)
+    ax1.plot_surface(lambdas_grid, years_grid, te_plot_green.T)
+    ax2.bar3d(xpos, ypos, zpos, dx, dy, dz2, color=colors2, shade=True, alpha = 0.2)
+    ax2.plot_surface(lambdas_grid, years_grid, green_plot_.T)
+
+    # Labels et titre
+    ax1.set_xlabel("Lambda")
+    ax1.set_ylabel("Année")
+    ax1.set_zlabel("Tracking Error")
+    ax1.set_title("Histogramme 3D du Tracking Error")
+    ax2.set_xlabel("Lambda")
+    ax2.set_ylabel("Année")
+    ax2.set_zlabel("Greenness")
+    ax2.set_title("Histogramme 3D de Greenness")
+    plt.suptitle(title)
+    plt.show()
+
 
 def te_over_time(te_array, time,title=''):
     plt.figure(figsize=(10, 6))
@@ -25,6 +139,7 @@ def te_over_time(te_array, time,title=''):
     plt.grid(True)
     plt.tight_layout()
     plt.show()
+
 
 def hist_per_sector(CI, name_col='Weight_CE_FY',title=''):
     bench = (CI["Weight"].values / CI["Weight"].sum()).reshape(-1, 1)
@@ -185,17 +300,28 @@ def evolution_of_non_zeros_per_sector(CI, name_col='Weight_CE_FY',title=''):
     plt.tight_layout()
     plt.show()
 
-def greenness(Green,CI,times,name_col="Weights_CE_FY",title=''):
+def greenness(Green, CI, times, name_col="Weights_CE_FY", title=''):
     weights = [col for col in CI.columns if col.startswith(name_col)]
     x_list = [CI[weight].values for weight in weights]
     green_plot = [Green.T @ x for x in x_list] 
     green_plot = np.array(green_plot).squeeze()
+    
     plt.figure(figsize=(10, 6))
-    plt.plot(times,green_plot,marker='o', linestyle='-', color='g')
+    plt.plot(times, green_plot, marker='o', linestyle='-', color='g')
     plt.title('Greenness Over Time' + title)
     plt.xlabel('Year')
     plt.ylabel('Greenness')
     plt.grid(True)
+    
+    # Ajout pour forcer affichage sans offset ni notation scientifique
+    plt.gca().get_yaxis().get_major_formatter().set_useOffset(False)
+    plt.ticklabel_format(axis='y', style='plain')
+    
+    # Si la courbe est constante, on ajuste l’échelle manuellement
+    if np.allclose(green_plot, green_plot[0]):
+        center = green_plot[0]
+        plt.ylim(center - 0.01, center + 0.01)
+
     plt.tight_layout()
     plt.show()
 
@@ -250,223 +376,4 @@ def spider_graph(CI, name_col='Weight_CE_FY',title=''):
 
     plt.legend(loc='upper right', bbox_to_anchor=(1.3, 1.1))
     plt.title(title)
-    plt.show()
-
-def solve_optim(R_, CI, CI0, bench, sigma, Green=None, CMstar=None, g=None, constraints_green=False, name="CE"):
-    nb_firms = bench.shape[0]
-    nb_years = len(R_)
-
-    x_list = np.zeros((nb_years, nb_firms, 1))
-    te = np.zeros((nb_years, 1))
-
-
-    for year in range(nb_years):
-        R = R_[year]
-
-        # Current year
-        ye = 23 + year
-        print(ye)
-
-        # Extract the carbon emissions and momentum for the current year
-        column = "CARBON_EMISSIONS_SCOPE_12_FY"+str(ye)
-        CI_year = CI[column].values.reshape(-1, 1)
-        CI_year[CI_year < 0] = 0
-        column_CM = "CARBON_MOMENTUM_SCOPE_12_FY"+str(ye)
-        CM_year = CI[column_CM].values.reshape(-1, 1)
-
-        # Solve the optimization problem
-        if constraints_green:
-            y = solve(
-                Q=sigma,
-                p=None,
-                G=np.concatenate((CI_year, -Green, CM_year), axis=1).T, # CI0 -Gt CM
-                h=np.concatenate(((1 - R)*CI0.T@bench-CI_year.T@bench,-g*Green.T@bench, CMstar-CM_year.T@bench),axis=0),# (1-R)CI0b-CItb   -(1+g)G0b-Gtb    CM*-CMb
-                A=np.ones((nb_firms,1)).T,
-                b=-np.ones(bench.shape).T @ bench + 1,    
-                lb=- bench,
-                ub=np.ones(bench.shape) - bench, #9 * bench ?
-            )
-        else:
-            y = solve(
-                Q=sigma,
-                p=None,
-                G=CI_year[:,0].T,                             
-                h=(1 - R) * CI0.T @ bench - CI_year.T @ bench, 
-                A=np.ones((nb_firms, 1)).T,
-                b=-np.ones(bench.shape).T @ bench + 1,           
-                lb=- bench,
-                ub=np.ones(bench.shape) - bench, #9 * bench ?
-            )
-        
-        y = y.reshape(-1, 1)    # (_, 1)
-        x = y + bench
-
-        # Save the results
-        x_list[year] = x
-        name_col = "Weights_"+name+"_FY" +str(ye)
-        CI[name_col] = x
-        te[year] = 0.5 * y.T @ sigma @ y
-    return x_list, te, CI 
-
-def solve_optim_lambda(R_, CI, CI0, bench, sigma, Green=None, CMstar=None, g=None, l=0):
-    nb_firms = bench.shape[0]
-    nb_years = len(R_)
-
-    x_list = np.zeros((nb_years, nb_firms, 1))
-    te = np.zeros((nb_years, 1))
-
-    for year in range(len(R_)):
-        R = R_[year]
-        ye = 23+year
-        column_CE = "CARBON_EMISSIONS_SCOPE_12_FY"+str(ye)
-        CI_year = CI[column_CE].values.reshape(-1, 1)
-        column_CM = "CARBON_MOMENTUM_SCOPE_12_FY"+str(ye)
-        CM_year = CI[column_CM].values.reshape(-1, 1)
-        CI_year[CI_year < 0] = 0
-
-        y = solve(
-            Q = sigma,
-            p = -l*Green,
-            G = np.concatenate((CI_year, -Green, CM_year), axis=1).T,
-            h = np.concatenate(((1 - R)*CI0.T@bench-CI_year.T@bench,-g*Green.T@bench, CMstar-CM_year.T@bench),axis=0),
-            A = np.ones((bench.shape[0],1)).T,
-            b = -np.ones(bench.shape).T @ bench + 1,
-            lb = - bench,
-            ub =np.ones(bench.shape) - bench, #9 * bench ?
-        )
-
-        y = y.reshape(-1, 1)
-        x = y + bench
-
-        x_list[year] = x
-        name_col = "Weight_G_lambda_" +str(l)+ "_FY"+str(ye)
-        CI[name_col] = x
-        te[year] = 0.5 * y.T @ sigma @ y
-    return x_list, te, CI
-
-def graph_3D_surface(Green, x_list_year, lambdas,years,te_plot,title=''):
-    green_plot = [[(Green.T @ x)[0][0] for x in x_list_year[i]] for i in range(len(x_list_year))]
-    green_plot = np.array(green_plot).squeeze()
-
-    # Create a meshgrid for the years and lambdas
-    lambdas_grid, years_grid = np.meshgrid(lambdas, years)
-
-
-    # Plotting the 3D plot
-    fig = plt.figure(figsize=(12, 20))
-    ax1 = fig.add_subplot(121, projection='3d')
-
-    # Plot the surface
-    ax1.plot_surface(lambdas_grid, years_grid, te_plot.T, cmap='viridis')
-
-    # Add labels and title
-    ax1.set_xlabel('Lambda')
-    ax1.set_ylabel('Year')
-    ax1.set_zlabel('Tracking Error (sqrt(te) * 1e4)')
-    ax1.set_title('3D Plot of Tracking Error vs Year and Lambda')
-
-    ax2 = fig.add_subplot(122, projection='3d')
-
-    # Plot the surface
-    ax2.plot_surface(lambdas_grid, years_grid, green_plot.T, cmap='viridis')
-
-    # Add labels and title
-    ax2.set_xlabel('Lambda')
-    ax2.set_ylabel('Year')
-    ax2.set_zlabel('Tracking Error (sqrt(te) * 1e4)')
-    ax2.set_title('3D Plot of Tracking Error vs Year and Lambda')
-    plt.suptitle(title)
-    plt.show()
-
-def graphe_3D_block(Green, x_list_year, lambdas, years, te_plot,title=''):
-    green_plot = [[(Green.T @ x)[0][0] for x in x_list_year[i]] for i in range(len(x_list_year))]
-    green_plot = np.array(green_plot).squeeze()
-    fig = plt.figure(figsize=(12, 8))
-    ax1 = fig.add_subplot(121, projection='3d')
-    ax2 = fig.add_subplot(122, projection='3d')
-
-    # Positions des barres en 3D
-    xpos, ypos = np.meshgrid(lambdas, years)  # Création des grilles pour lambda et année
-    xpos = xpos.flatten()  # Aplatir en liste de coordonnées
-    ypos = ypos.flatten()
-    zpos = np.zeros_like(xpos)  # Base des barres (z=0)
-
-    # Largeur et profondeur des barres
-    dx = np.abs(np.diff(lambdas).mean()) * 0.8  # Ajuste la largeur des barres
-    dy = np.abs(np.diff(years).mean()) * 0.8  
-
-    # Hauteur des barres (valeurs de `te_year_array`)
-    dz1 = te_plot.T.flatten()
-    dz2 = green_plot.T.flatten()
-
-    # Coloration basée sur la hauteur des barres
-    colors1 = plt.cm.viridis((dz1 - dz1.min()) / (dz1.max() - dz1.min()))
-    colors2 = plt.cm.viridis((dz2 - dz2.min()) / (dz2.max() - dz2.min()))
-
-    # Création de l'histogramme 3D
-    ax1.bar3d(xpos, ypos, zpos, dx, dy, dz1, color=colors1, shade=True)
-    ax2.bar3d(xpos, ypos, zpos, dx, dy, dz2, color=colors2, shade=True)
-
-    # Labels et titre
-    ax1.set_xlabel("Lambda")
-    ax1.set_ylabel("Année")
-    ax1.set_zlabel("Tracking Error")
-    ax1.set_title("Histogramme 3D du Tracking Error")
-    ax2.set_xlabel("Lambda")
-    ax2.set_ylabel("Année")
-    ax2.set_zlabel("Greenness")
-    ax2.set_title("Histogramme 3D de Greenness")
-    plt.suptitle(title)
-
-    plt.show()
-
-def graphe_3D_block_surface_ref(Green, x_list_year, lambdas, years, te_plot, te_green, x_list_green,te_year,title=''):
-    lambdas_grid, years_grid = np.meshgrid(lambdas, years)
-    green_plot = [[(Green.T @ x)[0][0] for x in x_list_year[i]] for i in range(len(x_list_year))]
-    green_plot = np.array(green_plot).squeeze()
-
-    # Positions des barres en 3D
-    xpos, ypos = np.meshgrid(lambdas, years)  # Création des grilles pour lambda et année
-    xpos = xpos.flatten()  # Aplatir en liste de coordonnées
-    ypos = ypos.flatten()
-    zpos = np.zeros_like(xpos)  # Base des barres (z=0)
-
-    # Largeur et profondeur des barres
-    dx = np.abs(np.diff(lambdas).mean()) * 0.8  # Ajuste la largeur des barres
-    dy = np.abs(np.diff(years).mean()) * 0.8  
-
-    # Hauteur des barres (valeurs de `te_year_array`)
-    dz1 = te_plot.T.flatten()
-    dz2 = green_plot.T.flatten()
-
-    # Coloration basée sur la hauteur des barres
-    colors1 = plt.cm.viridis((dz1 - dz1.min()) / (dz1.max() - dz1.min()))
-    colors2 = plt.cm.viridis((dz2 - dz2.min()) / (dz2.max() - dz2.min()))
-    te_plot_green = [[np.sqrt(te_green[j][0][0])*1e4 for j in range(len(te_year[0]))] for i in range(len(te_year))]
-    te_plot_green = np.array(te_plot_green).squeeze()
-
-    x_list_green = np.array(x_list_green).squeeze()
-    green_plot_ = [[(Green.T)@(x_list_green[i]) for i in range(len(te_year[0]))] for j in range(len(x_list_year))]
-    green_plot_ = np.array(green_plot_).squeeze()
-
-    fig = plt.figure(figsize=(12, 8))
-    ax1 = fig.add_subplot(121, projection='3d')
-    ax2 = fig.add_subplot(122, projection='3d')
-
-    # Création de l'histogramme 3D
-    ax1.bar3d(xpos, ypos, zpos, dx, dy, dz1, color=colors1, shade=True, alpha = 0.2)
-    ax1.plot_surface(lambdas_grid, years_grid, te_plot_green.T)
-    ax2.bar3d(xpos, ypos, zpos, dx, dy, dz2, color=colors2, shade=True, alpha = 0.2)
-    ax2.plot_surface(lambdas_grid, years_grid, green_plot_.T)
-
-    # Labels et titre
-    ax1.set_xlabel("Lambda")
-    ax1.set_ylabel("Année")
-    ax1.set_zlabel("Tracking Error")
-    ax1.set_title("Histogramme 3D du Tracking Error")
-    ax2.set_xlabel("Lambda")
-    ax2.set_ylabel("Année")
-    ax2.set_zlabel("Greenness")
-    ax2.set_title("Histogramme 3D de Greenness")
-    plt.suptitle(title)
     plt.show()
