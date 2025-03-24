@@ -252,52 +252,69 @@ def spider_graph(CI, name_col='Weight_CE_FY',title=''):
     plt.title(title)
     plt.show()
 
-def solve_optim(R_, CI, CI0, bench, sigma, Green=None, CMstar=None, g=None, constraints_green = False, name = "CE"):
-    x_list = []
-    te = []
-    for year in range(len(R_)):
+def solve_optim(R_, CI, CI0, bench, sigma, Green=None, CMstar=None, g=None, constraints_green=False, name="CE"):
+    nb_firms = bench.shape[0]
+    nb_years = len(R_)
+
+    x_list = np.zeros((nb_years, nb_firms, 1))
+    te = np.zeros((nb_years, 1))
+
+
+    for year in range(nb_years):
         R = R_[year]
-        ye = 23+year
+
+        # Current year
+        ye = 23 + year
         print(ye)
+
+        # Extract the carbon emissions and momentum for the current year
         column = "CARBON_EMISSIONS_SCOPE_12_FY"+str(ye)
         CI_year = CI[column].values.reshape(-1, 1)
         CI_year[CI_year < 0] = 0
         column_CM = "CARBON_MOMENTUM_SCOPE_12_FY"+str(ye)
         CM_year = CI[column_CM].values.reshape(-1, 1)
+
+        # Solve the optimization problem
         if constraints_green:
             y = solve(
-                Q = sigma,
-                p = None,
-                G = np.concatenate((CI_year, -Green, CM_year), axis=1).T,#CI0 -Gt CM
-                h = np.concatenate(((1 - R)*CI0.T@bench-CI_year.T@bench,-g*Green.T@bench, CMstar-CM_year.T@bench),axis=0),# (1-R)CI0b-CItb   -(1+g)G0b-Gtb    CM*-CMb
-                A = np.ones((bench.shape[0],1)).T,
-                b = -np.ones(bench.shape).T @ bench + 1,
-                lb = - bench,
-                ub =np.ones(bench.shape) - bench, #9 * bench ?
+                Q=sigma,
+                p=None,
+                G=np.concatenate((CI_year, -Green, CM_year), axis=1).T, # CI0 -Gt CM
+                h=np.concatenate(((1 - R)*CI0.T@bench-CI_year.T@bench,-g*Green.T@bench, CMstar-CM_year.T@bench),axis=0),# (1-R)CI0b-CItb   -(1+g)G0b-Gtb    CM*-CMb
+                A=np.ones((nb_firms,1)).T,
+                b=-np.ones(bench.shape).T @ bench + 1,    
+                lb=- bench,
+                ub=np.ones(bench.shape) - bench, #9 * bench ?
             )
         else:
             y = solve(
-            Q = sigma,
-            p = None,
-            G = CI_year[:,0].T,
-            h = (1 - R) * CI0.T @ bench - CI_year.T @ bench,
-            A = np.ones((bench.shape[0],1)).T,
-            b =-np.ones(bench.shape).T @ bench + 1,
-            lb = - bench,
-            ub =np.ones(bench.shape) - bench, #9 * bench ?
-        )
-        y = y[:,np.newaxis]
+                Q=sigma,
+                p=None,
+                G=CI_year[:,0].T,                             
+                h=(1 - R) * CI0.T @ bench - CI_year.T @ bench, 
+                A=np.ones((nb_firms, 1)).T,
+                b=-np.ones(bench.shape).T @ bench + 1,           
+                lb=- bench,
+                ub=np.ones(bench.shape) - bench, #9 * bench ?
+            )
+        
+        y = y.reshape(-1, 1)    # (_, 1)
         x = y + bench
-        x_list.append(x)
+
+        # Save the results
+        x_list[year] = x
         name_col = "Weights_"+name+"_FY" +str(ye)
         CI[name_col] = x
-        tracking_error = 0.5 * y.T @ sigma @ y
-        te.append(tracking_error)
+        te[year] = 0.5 * y.T @ sigma @ y
     return x_list, te, CI 
 
-def solve_optim_lambda(R_, CI, CI0, bench, sigma, Green=None, CMstar=None, g=None,l = 0):
-    x_list=[]
-    te = []
+def solve_optim_lambda(R_, CI, CI0, bench, sigma, Green=None, CMstar=None, g=None, l=0):
+    nb_firms = bench.shape[0]
+    nb_years = len(R_)
+
+    x_list = np.zeros((nb_years, nb_firms, 1))
+    te = np.zeros((nb_years, 1))
+
     for year in range(len(R_)):
         R = R_[year]
         ye = 23+year
@@ -306,6 +323,7 @@ def solve_optim_lambda(R_, CI, CI0, bench, sigma, Green=None, CMstar=None, g=Non
         column_CM = "CARBON_MOMENTUM_SCOPE_12_FY"+str(ye)
         CM_year = CI[column_CM].values.reshape(-1, 1)
         CI_year[CI_year < 0] = 0
+
         y = solve(
             Q = sigma,
             p = -l*Green,
@@ -316,13 +334,14 @@ def solve_optim_lambda(R_, CI, CI0, bench, sigma, Green=None, CMstar=None, g=Non
             lb = - bench,
             ub =np.ones(bench.shape) - bench, #9 * bench ?
         )
-        y = y[:,np.newaxis]
+
+        y = y.reshape(-1, 1)
         x = y + bench
-        x_list.append(x)
+
+        x_list[year] = x
         name_col = "Weight_G_lambda_" +str(l)+ "_FY"+str(ye)
         CI[name_col] = x
-        tracking_error = 0.5 * y.T @ sigma @ y
-        te.append(tracking_error)
+        te[year] = 0.5 * y.T @ sigma @ y
     return x_list, te, CI
 
 def graph_3D_surface(Green, x_list_year, lambdas,years,te_plot,title=''):
@@ -331,6 +350,7 @@ def graph_3D_surface(Green, x_list_year, lambdas,years,te_plot,title=''):
 
     # Create a meshgrid for the years and lambdas
     lambdas_grid, years_grid = np.meshgrid(lambdas, years)
+
 
     # Plotting the 3D plot
     fig = plt.figure(figsize=(12, 20))
