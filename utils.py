@@ -195,7 +195,115 @@ def greenness(Green,CI,times,name_col="Weights_CE_FY",title=''):
     plt.title('Greenness Over Time' + title)
     plt.xlabel('Year')
     plt.ylabel('Greenness')
+    plt.gca().yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x:.2f}'))
     plt.grid(True)
+    plt.tight_layout()
+    plt.show()
+
+def compare_strategies_year(CI, year=2050, lambda_value=2e-8):
+    """
+    Compare sector weights in a given year across three strategies: CE, G, and G_lambda.
+
+    Parameters:
+    - CI: DataFrame containing sector weight data
+    - year: int, target year for comparison (e.g., 2050)
+    - lambda_value: float, value used in the G_lambda strategy (e.g., 2e-8)
+    """
+    suffix = str(year)[-2:]  # Ex: '2050' → '50'
+
+    col_CE = f"Weights_CE_FY{suffix}"
+    col_G = f"Weights_G_FY{suffix}"
+    lambda_str = f"{lambda_value:.0e}"  # e.g., 2e-08
+    col_lambda = f"Weight_G_lambda_{lambda_str}_FY{suffix}"
+
+    # Vérification de colonnes
+    for col in [col_CE, col_G, col_lambda]:
+        if col not in CI.columns:
+            print("Colonnes disponibles :", CI.columns.tolist())
+            raise ValueError(f"Column {col} not found in DataFrame.")
+
+    # Groupement par secteur
+    grouped = CI.groupby("GICS_SECTOR")[[col_CE, col_G, col_lambda]].sum()
+
+    # Tracé
+    grouped.plot(
+        kind="bar",
+        figsize=(12, 5),
+        stacked=False
+    )
+    plt.title(f"Sector weight comparison in FY{suffix} (λ = {lambda_str})")
+    plt.xlabel("Sector")
+    plt.ylabel("Total weight")
+    plt.xticks(rotation=45, ha="right")
+    plt.legend(["CE", "G", f"G_lambda_{lambda_str}"], loc="upper right")
+    plt.tight_layout()
+    plt.show()
+
+def plot_sector_deviation_from_benchmark(CI, method="CE", lambda_value=2e-8):
+    """
+    Plots the sum of absolute deviations from benchmark weights by sector,
+    separated by years 2023, 2030, and 2050, for the given strategy (CE, G, or G_lambda).
+
+    Parameters:
+    - CI: pandas DataFrame with sector weights and benchmark info.
+    - method: str, one of 'CE', 'G', or 'G_lambda'.
+    - lambda_value: float, used only for method 'G_lambda'.
+
+    Output:
+    - Bar chart with 3 bars per sector (one for each year).
+    """
+    years = [2023, 2030, 2050]
+    suffixes = [str(year)[-2:] for year in years]
+
+    # Choix du préfixe de colonne
+    if method == "CE":
+        col_prefix = "Weights_CE_FY"
+        method_label = "CE"
+    elif method == "G":
+        col_prefix = "Weights_G_FY"
+        method_label = "G"
+    elif method == "G_lambda":
+        lambda_str = f"{lambda_value:.0e}"  # e.g., 2e-08
+        col_prefix = f"Weight_G_lambda_{lambda_str}_FY"
+        method_label = f"G_lambda ({lambda_str})"
+    else:
+        raise ValueError("Unknown method. Use 'CE', 'G', or 'G_lambda'.")
+
+    # Benchmark normalisé
+    CI = CI.copy()
+    CI["benchmark"] = CI["Weight"] / CI["Weight"].sum()
+
+    # Initialiser les écarts par secteur et année
+    sector_deviation = {year: pd.Series(0.0, index=CI["GICS_SECTOR"].unique()) for year in years}
+
+    for suffix, year in zip(suffixes, years):
+        col = col_prefix + suffix
+        if col not in CI.columns:
+            raise ValueError(f"Column {col} not found in DataFrame.")
+
+        CI["abs_diff"] = (CI[col] - CI["benchmark"]).abs()
+        deviation_by_sector = CI.groupby("GICS_SECTOR")["abs_diff"].sum()
+
+        # Ajouter les écarts pour cette année
+        sector_deviation[year] = sector_deviation[year].add(deviation_by_sector, fill_value=0)
+
+    # Création du dataframe pour le plot
+    deviation_df = pd.DataFrame(sector_deviation)
+
+    # Plot avec 3 barres par secteur
+    deviation_df.plot(
+        kind="bar",
+        figsize=(12, 5),
+        stacked=False,
+        color=["#FF7F0E", "#2CA02C", "#D62728"],  # Couleurs pour chaque année
+        edgecolor="black"
+    )
+
+    plt.title(f"Total absolute deviation from benchmark by sector\n({method_label} strategy)")
+    plt.xlabel("Sector")
+    plt.ylabel("Sum of absolute deviation")
+    plt.xticks(rotation=45, ha="right")
+    plt.legend(["2023", "2030", "2050"], loc="upper right")
     plt.tight_layout()
     plt.show()
 
